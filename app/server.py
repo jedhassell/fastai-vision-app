@@ -7,9 +7,9 @@ from io import BytesIO
 from fastai.vision import *
 import base64
 
-model_file_url = 'https://github.com/pankymathur/Fine-Grained-Clothing-Classification/blob/master/data/cloth_categories/models/stage-1_sz-150.pth?raw=true'
-model_file_name = 'model'
-classes = ['Blouse', 'Blazer', 'Button-Down', 'Bomber', 'Anorak', 'Tee', 'Tank', 'Top', 'Sweater', 'Flannel', 'Hoodie', 'Cardigan', 'Jacket', 'Henley', 'Poncho', 'Jersey', 'Turtleneck', 'Parka', 'Peacoat', 'Halter', 'Skirt', 'Shorts', 'Jeans', 'Joggers', 'Sweatpants', 'Jeggings', 'Cutoffs', 'Sweatshorts', 'Leggings', 'Culottes', 'Chinos', 'Trunks', 'Sarong', 'Gauchos', 'Jodhpurs', 'Capris', 'Dress', 'Romper', 'Coat', 'Kimono', 'Jumpsuit', 'Robe', 'Caftan', 'Kaftan', 'Coverup', 'Onesie']
+# model_file_url = 'https://github.com/pankymathur/Fine-Grained-Clothing-Classification/blob/master/data/cloth_categories/models/stage-1_sz-150.pth?raw=true'
+# model_file_name = 'stage-1-50-20.pth'
+classes = ['plant', 'poison_oak']
 
 path = Path(__file__).parent
 
@@ -25,10 +25,17 @@ async def download_file(url, dest):
             with open(dest, 'wb') as f: f.write(data)
 
 async def setup_learner():
-    await download_file(model_file_url, path/'models'/f'{model_file_name}.pth')
-    data_bunch = ImageDataBunch.single_from_classes(path, classes, df_tfms=get_transforms(), size=150).normalize(imagenet_stats)
-    learn = create_cnn(data_bunch, models.resnet34, pretrained=False)
-    learn.load(model_file_name)
+    # await download_file(model_file_url, path/'models'/f'{model_file_name}.pth')
+
+    # path = '.'
+    data = ImageDataBunch.from_folder("data", train=".", valid_pct=0.2, bs=8,
+        ds_tfms=get_transforms(), size=224, num_workers=4).normalize(imagenet_stats)
+
+    # data = ImageDataBunch.single_from_classes(path, classes, df_tfms=get_transforms(), size=672).normalize(imagenet_stats)
+    # learn = create_cnn(data_bunch, models.resnet34, pretrained=False)
+    learn = cnn_learner(data, models.resnet34, metrics=error_rate)
+    # learn.load(model_file_name)
+    learn.load('stage-1-34-5')
     return learn
 
 loop = asyncio.get_event_loop()
@@ -41,7 +48,8 @@ PREDICTION_FILE_SRC = path/'static'/'predictions.txt'
 @app.route("/upload", methods=["POST"])
 async def upload(request):
     data = await request.form()
-    img_bytes = await (data["img"].read())
+    # breakpoint()
+    img_bytes = data["img"]#await (data["img"])
     bytes = base64.b64decode(img_bytes)
     return predict_from_bytes(bytes)
 
