@@ -41,8 +41,8 @@ PREDICTION_FILE_SRC = path/'static'/'predictions.txt'
 async def upload(request):
     data = await request.form()
     # breakpoint()
-    img_bytes = data["img"]#await (data["img"])
-    bytes = base64.b64decode(img_bytes)
+    # img_bytes = await (data["img"].read())
+    bytes = base64.b64decode(data["img"])
     return predict_from_bytes(bytes)
 
 def predict_from_bytes(bytes):
