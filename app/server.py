@@ -24,10 +24,10 @@ async def download_file(url, dest):
 
 async def setup_learner():
     data = ImageDataBunch.from_folder("data", train=".", valid_pct=0.2, bs=8,
-        ds_tfms=get_transforms(), size=224, num_workers=4).normalize(imagenet_stats)
+        ds_tfms=get_transforms(), size=672, num_workers=4).normalize(imagenet_stats)
 
     learn = cnn_learner(data, models.resnet50, metrics=error_rate)
-    learn.load('stage-1-50-20')
+    learn.load('stage-2-50-10-zoom')
     return learn
 
 loop = asyncio.get_event_loop()
